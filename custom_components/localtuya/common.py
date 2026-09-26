@@ -307,10 +307,14 @@ class TuyaDevice(pytuya.TuyaListener, pytuya.ContextualLogger):
         if self._connect_task is not None:
             self._connect_task.cancel()
             await self._connect_task
+        if self._unsub_interval is not None:
+            self._unsub_interval()
+            self._unsub_interval = None
         if self._interface is not None:
             await self._interface.close()
         if self._disconnect_task is not None:
             self._disconnect_task()
+            self._disconnect_task = None
         self.info(
             "Closed connection with device %s.",
             self._dev_config_entry[CONF_FRIENDLY_NAME],
@@ -358,6 +362,9 @@ class TuyaDevice(pytuya.TuyaListener, pytuya.ContextualLogger):
         if self._unsub_interval is not None:
             self._unsub_interval()
             self._unsub_interval = None
+        if self._disconnect_task is not None:
+            self._disconnect_task()
+            self._disconnect_task = None
         self._interface = None
 
         if self._connect_task is not None:
