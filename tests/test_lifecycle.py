@@ -94,3 +94,14 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         await self.device.close()
         self.assertEqual(cancelled, [True])
         self.assertEqual(len(self.listeners), 0)
+
+    async def test_close_cleans_up_even_when_connection_task_is_cancelled(self):
+        await self.device._make_connection()
+        cancelled = []
+        self.device._unsub_interval = lambda: cancelled.append(True)
+        self.device._connect_task = asyncio.create_task(asyncio.sleep(60))
+        await asyncio.sleep(0)
+        await self.device.close()
+        self.assertEqual(cancelled, [True])
+        self.assertEqual(len(self.listeners), 0)
+        self.assertTrue(self.interfaces[0].closed)
